@@ -2,7 +2,7 @@
 import Image from "next/image";
 
 export default function FraccionesNiveles() {
-  const niveles = [1, 2, 3, 4, 5, 6]; // puedes extender fácilmente
+  const niveles = [1, 2, 3, 4, 5, 6];
 
   return (
     <main className="min-h-screen bg-orange-50 p-6 flex flex-col items-center">
@@ -17,10 +17,9 @@ export default function FraccionesNiveles() {
         <h1 className="bg-orange-400 text-white text-3xl font-bold px-8 py-2 rounded-full shadow">
           NIVELES: Fracciones
         </h1>
-        <div className="w-12" /> {/* Espaciador para alinear */}
+        <div className="w-12" />
       </div>
 
-      {/* Capybara y mensaje */}
       <div className="flex items-center gap-4 mb-6">
         <Image src="/images/cuy.png" alt="Cuy" width={60} height={60} />
         <div className="bg-orange-400 text-white px-6 py-2 rounded-full font-semibold shadow">

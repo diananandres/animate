@@ -1,25 +1,17 @@
-export default function InicioEstudiante() {
+export default function InicioProfesor() {
     return (
       <main className="min-h-screen bg-orange-50 p-6 flex flex-col items-center">
-        {/* Título y boton atras */}
-        <div className="flex justify-between items-center w-full max-w-4xl mb-8">
-        <a
-            href="/"
-            className="bg-orange-300 rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-orange-400"
-        >
-            ←
-        </a>
-        <h1 className="bg-orange-400 text-white text-3xl font-bold px-8 py-2 rounded-full shadow">
-            MATEMATICAS
+        <h1 className="text-4xl font-bold bg-orange-400 text-white px-10 py-2 rounded-full mb-8 shadow-md">
+          MATEMÁTICAS
         </h1>
-        <div className="w-12" />
-        </div>
   
         <div className="space-y-4 w-full max-w-md">
           {[
-            { label: "FRACCIONES", link: "/fracciones" },
-            { label: "TEMA 2", link: "#" },
-            { label: "TEMA 3", link: "#" },
+            { label: "SECCION A", link: "#" },
+            { label: "SECCION B", link: "#" },
+            { label: "SECCION C", link: "#" },
+            { label: "SECCION D", link: "#" },
+            { label: "REPORTES", link: "#" },
           ].map((tema, i) => (
             <a
               key={i}
