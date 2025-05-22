@@ -37,7 +37,7 @@ export default function LoginEstudiante() {
               type="text"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
-              className="w-full p-2 rounded-full bg-orange-100 focus:outline-none"
+              className="w-full p-2 rounded-full bg-orange-100 focus:outline-none text-black"
             />
           </div>
           <div>
@@ -46,7 +46,7 @@ export default function LoginEstudiante() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 rounded-full bg-orange-100 focus:outline-none"
+              className="w-full p-2 rounded-full bg-orange-100 focus:outline-none text-black"
             />
           </div>
           <button
