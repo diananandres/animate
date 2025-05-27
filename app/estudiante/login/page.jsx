@@ -7,29 +7,48 @@ export default function LoginEstudiante() {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (usuario && password) {
-      router.push("/estudiante/inicio");
-    } else {
+    if (!usuario || !password) {
       alert("Completa los campos");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: usuario, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al iniciar sesión");
+        return;
+      }
+
+      // Guardar token en localStorage (o cookie segura)
+      localStorage.setItem("token", data.token);
+
+      // Redirigir al inicio del alumno
+      router.push("/estudiante/inicio");
+    } catch (error) {
+      alert("Error de conexión al servidor");
     }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="relative bg-orange-400 rounded-[2rem] p-10 w-full max-w-md shadow-xl">
-        {/* Botón atrás */}
         <a href="/" className="absolute -left top-8 bg-orange-300 rounded-full w-14 h-14 flex items-center justify-center shadow-md hover:bg-orange-500">
           <span className="text-3xl text-white">←</span>
         </a>
 
-        {/* Imagen central */}
         <div className="flex justify-center mb-6">
           <img src="/images/libros.png" alt="Login" className="w-24 h-24 rounded-full shadow-md" />
         </div>
 
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-white font-bold block mb-1">Usuario</label>

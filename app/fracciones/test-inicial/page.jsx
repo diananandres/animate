@@ -1,75 +1,105 @@
-"use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import TestDiagnostico from "@/app/fracciones/test-inicial/test_diagnostico";
 
-export default function TestEntradaFracciones() {
-  const [respuesta, setRespuesta] = useState("");
-  const [respuestaCorrecta, setRespuestaCorrecta] = useState("30 / 15");
-  const [resultado, setResultado] = useState(null);
+const rangosNiveles = {
+  básico: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  intermedio: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  avanzado: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+};
 
-  const opciones = ["30*15", "30 / 15", "30 - 15"];
+export default function Fracciones({ userId }) {
+  const [testRealizado, setTestRealizado] = useState(null);
+  const [nivelesDesbloqueados, setNivelesDesbloqueados] = useState([]);
+  const [nivelGeneral, setNivelGeneral] = useState("");
+  const [mostrarTest, setMostrarTest] = useState(false);
+  const [respuestas, setRespuestas] = useState({});
+  const [puntaje, setPuntaje] = useState(0);
 
-  const verificar = (op) => {
-    setRespuesta(op);
-    if (op === respuestaCorrecta) {
-      setResultado("correcta");
-      setTimeout(() => {
-        // Aquí redirigiríamos al siguiente ejercicio o al nivel detectado
-        alert("¡Correcto! Vamos al siguiente ejercicio...");
-        // router.push("/fracciones/nivel2") o similar
-      }, 1000);
-    } else {
-      setResultado("incorrecta");
+  useEffect(() => {
+    fetch("/user/test-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ alumno_id: userId, tema: "fracciones" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.test_realizado) {
+          setTestRealizado(true);
+          setNivelesDesbloqueados(data.niveles_desbloqueados);
+          setNivelGeneral(data.nivel_general || "");
+          setMostrarTest(false);
+        } else {
+          setTestRealizado(false);
+          setMostrarTest(true);
+        }
+      });
+  }, [userId]);
+
+  function calcularPuntaje() {
+    let correctas = 0;
+    for (const id in respuestas) {
+      if (respuestas[id].esCorrecta) correctas++;
     }
-  };
+    setPuntaje(correctas);
+    return correctas;
+  }
 
-  return (
-    <main className="min-h-screen bg-orange-50 p-6 flex flex-col items-center justify-center gap-10">
-      {/* Capibara y mensaje */}
-      <div className="flex gap-8 items-center">
-        <img src="/images/capibara.png" className="w-28" />
-        <div className="bg-white border-2 border-black px-6 py-4 rounded-xl shadow text-xl font-semibold">
-          Primero un pequeño test de conocimiento
-        </div>
+  function determinarNiveles(score) {
+    let nivel;
+    if (score <= 7) nivel = "básico";
+    else if (score <= 14) nivel = "intermedio";
+    else nivel = "avanzado";
+    return rangosNiveles[nivel];
+  }
+
+  function enviarResultados({ respuestas, preguntas }) {
+    let score = 0;
+    preguntas.forEach((p) => {
+      if (
+        respuestas[p.id] &&
+        respuestas[p.id].trim().toLowerCase() === p.respuesta_correcta.trim().toLowerCase()
+      ) {
+        score += p.valor;
+      }
+    });
+  
+    const niveles = determinarNiveles(score);
+  
+    fetch("/user/guardar_test_diagnostico", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        tema: "fracciones",
+        score,
+        niveles_desbloqueados: niveles,
+        nivel_general: score <= 7 ? "básico" : score <= 14 ? "intermedio" : "avanzado",
+      }),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setNivelesDesbloqueados(niveles);
+        setNivelGeneral(score <= 7 ? "básico" : score <= 14 ? "intermedio" : "avanzado");
+        setMostrarTest(false);
+        setTestRealizado(true);
+      });
+  }  
+
+  {mostrarTest && <TestDiagnostico tema="fracciones" onTerminar={enviarResultados} />}
+
+  if (testRealizado) {
+    return (
+      <div>
+        <h2>Nivel general: {nivelGeneral}</h2>
+        <h3>Niveles desbloqueados</h3>
+        <ul>
+          {nivelesDesbloqueados.map((n) => (
+            <li key={n}>Nivel {n}</li>
+          ))}
+        </ul>
       </div>
+    );
+  }
 
-      {/* Texto introductorio */}
-      <div className="bg-orange-400 p-6 rounded-3xl shadow-lg text-white text-center max-w-md">
-        <h2 className="text-2xl font-bold mb-2">Test de entrada !!</h2>
-        <p className="text-lg font-semibold">Esta es solo una prueba para saber en qué nivel estás :D</p>
-      </div>
-
-      {/* Ejercicio */}
-      <div className="bg-orange-400 p-6 rounded-3xl text-white max-w-md text-center font-semibold shadow-lg">
-        <p>
-          Sara y sus amigos planean ir al cine después de la escuela. Cada entrada cuesta S/ 15.
-          <br /> Sara tiene S/ 30, ¿cuántas entradas puede comprar si lleva todo su dinero?
-        </p>
-      </div>
-
-      {/* Opciones */}
-      <div className="flex gap-6">
-        {opciones.map((op, i) => (
-          <button
-            key={i}
-            onClick={() => verificar(op)}
-            className={`px-6 py-2 rounded-full text-white font-bold transition
-              ${
-                respuesta === op
-                  ? op === respuestaCorrecta
-                    ? "bg-green-600"
-                    : "bg-red-500"
-                  : "bg-orange-400 hover:bg-orange-500"
-              }`}
-          >
-            {op}
-          </button>
-        ))}
-      </div>
-
-      {/* Feedback */}
-      {resultado === "incorrecta" && (
-        <div className="text-red-600 font-semibold mt-4">¡Vuelve a intentarlo!</div>
-      )}
-    </main>
-  );
+  return <div>Cargando...</div>;
 }
