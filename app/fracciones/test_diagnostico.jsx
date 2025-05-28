@@ -5,7 +5,7 @@ export default function TestDiagnostico({ tema, onTerminar }) {
   const [respuestas, setRespuestas] = useState({}); // { idPregunta: respuestaUsuario }
 
   useEffect(() => {
-    fetch("/test/test-diagnostico", {
+    fetch("http://localhost:5000/test/test-diagnostico", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tema }),

@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export default function InicioEstudiante() {
     return (
       <main className="min-h-screen bg-orange-50 p-6 flex flex-col items-center">
@@ -19,16 +17,18 @@ export default function InicioEstudiante() {
   
         <div className="space-y-4 w-full max-w-md">
           {[
-            { label: "FRACCIONES", href: "/fracciones/test-inicial" },
+            { label: "FRACCIONES", link: "/fracciones/test-inicial" },
             { label: "TEMA 2", link: "#" },
             { label: "TEMA 3", link: "#" },
           ].map((tema, i) => (
-            <Link key={i} href={tema.href} passHref>
-            <a className="flex items-center justify-between bg-orange-400 text-white px-6 py-3 rounded-full shadow hover:bg-orange-500">
+            <a
+              key={i}
+              href={tema.link}
+              className="flex items-center justify-between bg-orange-400 text-white px-6 py-3 rounded-full shadow hover:bg-orange-500"
+            >
               <span className="text-xl font-bold">{tema.label}</span>
               <span className="text-2xl">➡️</span>
             </a>
-          </Link>
           ))}
         </div>
   

@@ -1,48 +1,99 @@
 "use client";
-import Image from "next/image";
 
-export default function FraccionesNiveles() {
-  const niveles = [1, 2, 3, 4, 5, 6];
+import { useState, useEffect } from "react";
+import TestDiagnostico from "@/app/fracciones/test-inicial/test_diagnostico";
+
+const rangosNiveles = {
+  básico: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  intermedio: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  avanzado: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+};
+
+export default function Fracciones({ userId }) {
+  const [testRealizado, setTestRealizado] = useState(null);
+  const [nivelesDesbloqueados, setNivelesDesbloqueados] = useState([]);
+  const [nivelGeneral, setNivelGeneral] = useState("");
+
+  // Al montar, consultamos si el alumno ya hizo el test
+  useEffect(() => {
+    fetch("/user/test-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ alumno_id: userId, tema: "fracciones" }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.test_realizado) {
+          setTestRealizado(true);
+          setNivelesDesbloqueados(data.niveles_desbloqueados);
+          setNivelGeneral(data.nivel_general);
+        } else {
+          setTestRealizado(false);
+        }
+      })
+      .catch(() => {
+        // En caso de error, consideramos que no hizo el test
+        setTestRealizado(false);
+      });
+  }, [userId]);
+
+  // Cuando el TestDiagnostico llama a onTerminar
+  const onTerminar = ({ preguntas, respuestas }) => {
+    // Calculamos score
+    const score = preguntas.reduce((sum, p) => {
+      const respuesta = respuestas[p.id]?.trim().toLowerCase();
+      const correcta = p.respuesta_correcta.trim().toLowerCase();
+      return sum + (respuesta === correcta ? p.valor : 0);
+    }, 0);
+
+    // Determinamos nivel general y desbloqueos
+    const claveNivel =
+      score <= 7 ? "básico" : score <= 14 ? "intermedio" : "avanzado";
+    const desbloqueados = rangosNiveles[claveNivel];
+
+    // Guardamos en backend
+    fetch("/user/guardar_test_diagnostico", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        tema: "fracciones",
+        score,
+        niveles_desbloqueados: desbloqueados,
+        nivel_general: claveNivel,
+      }),
+    })
+      .then(() => {
+        setTestRealizado(true);
+        setNivelesDesbloqueados(desbloqueados);
+        setNivelGeneral(claveNivel);
+      })
+      .catch((err) => {
+        console.error("Error guardando diagnóstico:", err);
+      });
+  };
+
+  // --- RENDERIZADO ---
+
+  if (testRealizado === null) {
+    return <div>Cargando…</div>;
+  }
+
+  if (testRealizado === false) {
+    return (
+      <TestDiagnostico tema="fracciones" onTerminar={onTerminar} />
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-orange-50 p-6 flex flex-col items-center">
-      {/* Título y flecha */}
-      <div className="flex justify-between items-center w-full max-w-4xl mb-8">
-        <a
-          href="/estudiante/inicio"
-          className="bg-orange-300 rounded-full w-12 h-12 flex items-center justify-center shadow hover:bg-orange-400"
-        >
-          ←
-        </a>
-        <h1 className="bg-orange-400 text-white text-3xl font-bold px-8 py-2 rounded-full shadow">
-          NIVELES: Fracciones
-        </h1>
-        <div className="w-12" />
-      </div>
-
-      <div className="flex items-center gap-4 mb-6">
-        <Image src="/images/cuy.png" alt="Cuy" width={60} height={60} />
-        <div className="bg-orange-400 text-white px-6 py-2 rounded-full font-semibold shadow">
-          Es hora de practicar!
-        </div>
-      </div>
-
-      {/* Niveles scrolleables */}
-      <div className="overflow-y-scroll h-[500px] w-full max-w-md px-4 py-4 space-y-10">
-        {niveles.map((nivel, i) => (
-          <div key={nivel} className="flex flex-col items-center relative">
-            <a
-              href={`/fracciones/nivel${nivel}`}
-              className="bg-orange-400 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow hover:bg-orange-500"
-            >
-              {nivel}
-            </a>
-            {i !== niveles.length - 1 && (
-              <div className="w-px h-12 bg-black my-2" />
-            )}
-          </div>
+    <div>
+      <h2>Nivel general: {nivelGeneral}</h2>
+      <h3>Niveles desbloqueados:</h3>
+      <ul>
+        {nivelesDesbloqueados.map((n) => (
+          <li key={n}>Nivel {n}</li>
         ))}
-      </div>
-    </main>
+      </ul>
+    </div>
   );
 }
